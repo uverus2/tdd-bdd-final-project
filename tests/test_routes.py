@@ -183,7 +183,7 @@ class TestProductRoutes(TestCase):
         test_product = ProductFactory()
         response = self.client.post(BASE_URL, json=test_product.serialize())
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
+
         # update the product
         new_product = response.get_json()
         new_product['name'] = 'Hat'
@@ -196,7 +196,7 @@ class TestProductRoutes(TestCase):
         self.assertEqual(updated_product['name'], 'Hat')
         self.assertEqual(updated_product['description'], 'Testing')
 
-    def test_update_product_not_found(self):    
+    def test_update_product_not_found(self):
         """It should not update a Product thats not found"""
         response = self.client.put(f"{BASE_URL}/{0}", json=[])
         data = response.get_json()
@@ -211,21 +211,30 @@ class TestProductRoutes(TestCase):
         product_count = self.get_product_count()
         first_product = products[0]
 
-        #delete product
+        # delete product
         response = self.client.delete(f"{BASE_URL}/{first_product.id}")
 
-        #assert deletion
+        # assert deletion
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(response.data), 0)
 
-        #assert product cannot be retrieved
+        # assert product cannot be retrieved
         get_response = self.client.get(f"{BASE_URL}/{first_product.id}")
         self.assertEqual(get_response.status_code, status.HTTP_404_NOT_FOUND)
 
-        #verify count
+        # verify count
         new_count = self.get_product_count()
         self.assertEqual(new_count, product_count - 1)
 
+    def test_get_product_list(self):
+        """It should Get a list of Products"""
+        self._create_products(5)
+        response = self.client.get(BASE_URL)
+        data = response.get_json()
+
+        # assert data was receivedas
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(data), 5)
 
     ######################################################################
     # Utility functions
@@ -236,5 +245,5 @@ class TestProductRoutes(TestCase):
         response = self.client.get(BASE_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
-        # logging.debug("data = %s", data)
+        logging.debug("data = %s", data)
         return len(data)
