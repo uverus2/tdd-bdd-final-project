@@ -151,7 +151,7 @@ def step_impl(context, name):
 @then(u'I should not see "{name}" in the results')
 def step_impl(context, name):
     search_results = context.driver.find_element_by_id('search_results')
-    assert(name not in element.text)
+    assert(name not in search_results.text)
 
 @then(u'I should see the message "{message}"')
 def step_impl(context, message):
