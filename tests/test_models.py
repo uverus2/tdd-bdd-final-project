@@ -101,13 +101,56 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(new_product.available, product.available)
         self.assertEqual(new_product.category, product.category)
 
+    def test_deserialize_not_bool_available(self):
+        """It should throw exception if available is wrong value"""
+        product = ProductFactory()
+        product.create()
+
+        # prepare data
+        data = product.serialize()
+        data['available'] = 'error'
+
+        # assert
+        with self.assertRaises(Exception) as context: 
+            product.deserialize(data)
+        self.assertIn(str(context.exception), "Invalid type for boolean [available]: <class 'str'>")
+
+    def test_deserialize_wrong_category(self):
+        """It should throw exception if category is wrong value"""
+        product = ProductFactory()
+        product.create()
+        
+        # prepare data
+        data = product.serialize()
+        data['category'] = 'INVALID_CATEGORY'
+
+        # assert
+        with self.assertRaises(Exception) as context: 
+            product.deserialize(data)
+        self.assertIn(str(context.exception), "Invalid attribute: INVALID_CATEGORY")     
+
+    def test_deserialize_wrong_body(self):
+        """It should throw exception if body is wrong"""
+        product = ProductFactory()
+        product.create()
+        
+        # prepare data
+        data = []
+
+        # assert
+        with self.assertRaises(Exception) as context: 
+            product.deserialize(data)
+        self.assertIn(str(context.exception), "Invalid product: body of request contained bad or no data list indices must be integers or slices, not str")     
+        
     def test_read_a_product(self):
         """It should find the product in the DB"""
         product = ProductFactory()
         product.id = None
         product.create()
-        self.assertIsNotNone(product.id)
         found_product = product.find(product.id)
+
+        # assertions
+        self.assertIsNotNone(product.id)
         self.assertEqual(found_product.id, product.id)
         self.assertEqual(found_product.name, product.name)
         self.assertEqual(found_product.description, product.description)
@@ -137,6 +180,19 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(products[0].description, "Updated")
         self.assertEqual(products[0].price, 10.00)
 
+    def test_update_a_product_with_empty_id(self):
+        """It should throw exception"""
+        product = ProductFactory()
+        product.id = None
+        product.create()
+        self.assertIsNotNone(product.id)
+        
+        # update product
+        product.id = None
+        with self.assertRaises(Exception) as context: 
+            product.update()
+        self.assertEqual(str(context.exception), "Update called with empty ID field")    
+        
     def test_delete_a_product(self):
         """It should Delete a Product"""
         product = ProductFactory()
@@ -192,3 +248,40 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(products_by_category.count(), count)
         for product in products_by_category:
             self.assertEqual(product.category, first_product.category)
+
+    def test_find_by_price(self):
+        """It should Find Products by Price"""
+        products = ProductFactory.create_batch(5)
+        for product in products:
+            product.create()
+
+        # get product info  
+        first_product = Product.all()[0]
+        count = len([product for product in products if product.price == first_product.price])
+        products_by_price = Product.find_by_price(first_product.price)
+
+        # carry out assertions  
+        self.assertEqual(products_by_price.count(), count)
+        for product in products_by_price:
+            self.assertEqual(product.price, first_product.price)      
+
+    def test_find_by_price_string(self):
+        products = ProductFactory.create_batch(5)
+        for product in products:
+            product.create()
+
+        # update product
+        first_product = Product.all()[0]
+        first_product.price = "10"
+        first_product.update()
+
+        # get product by price
+        count = len([product for product in products if product.price == first_product.price])
+        products_by_price = Product.find_by_price("10")
+
+        # carry out assertions  
+        self.assertEqual(products_by_price.count(), count)
+        for product in products_by_price:
+            self.assertEqual(product.price, first_product.price)
+
+                
