@@ -197,13 +197,34 @@ class TestProductRoutes(TestCase):
         self.assertEqual(updated_product['description'], 'Testing')
 
     def test_update_product_not_found(self):    
-        """It should Update an existing Product"""
+        """It should not update a Product thats not found"""
         response = self.client.put(f"{BASE_URL}/{0}", json=[])
         data = response.get_json()
 
         # assertions
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertIn('Product with ID of 0 not found!', data["message"])
+
+    def test_delete_product(self):
+        """It should Delete a Product"""
+        products = self._create_products(5)
+        product_count = self.get_product_count()
+        first_product = products[0]
+
+        #delete product
+        response = self.client.delete(f"{BASE_URL}/{first_product.id}")
+
+        #assert deletion
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(response.data), 0)
+
+        #assert product cannot be retrieved
+        get_response = self.client.get(f"{BASE_URL}/{first_product.id}")
+        self.assertEqual(get_response.status_code, status.HTTP_404_NOT_FOUND)
+
+        #verify count
+        new_count = self.get_product_count()
+        self.assertEqual(new_count, product_count - 1)
 
 
     ######################################################################
