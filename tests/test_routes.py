@@ -277,7 +277,7 @@ class TestProductRoutes(TestCase):
         available_products = len([product for product in products if product.available is True])
 
         # make request
-        response = self.client.get(BASE_URL, query_string=f"available=true")
+        response = self.client.get(BASE_URL, query_string='available=true')
         data = response.get_json()
 
         # make assertions

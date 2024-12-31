@@ -111,7 +111,7 @@ class TestProductModel(unittest.TestCase):
         data['available'] = 'error'
 
         # assert
-        with self.assertRaises(Exception) as context: 
+        with self.assertRaises(Exception) as context:
             product.deserialize(data)
         self.assertIn(str(context.exception), "Invalid type for boolean [available]: <class 'str'>")
 
@@ -119,29 +119,32 @@ class TestProductModel(unittest.TestCase):
         """It should throw exception if category is wrong value"""
         product = ProductFactory()
         product.create()
-        
+
         # prepare data
         data = product.serialize()
         data['category'] = 'INVALID_CATEGORY'
 
         # assert
-        with self.assertRaises(Exception) as context: 
+        with self.assertRaises(Exception) as context:
             product.deserialize(data)
-        self.assertIn(str(context.exception), "Invalid attribute: INVALID_CATEGORY")     
+        self.assertIn(str(context.exception), "Invalid attribute: INVALID_CATEGORY")
 
     def test_deserialize_wrong_body(self):
         """It should throw exception if body is wrong"""
         product = ProductFactory()
         product.create()
-        
+
         # prepare data
         data = []
 
         # assert
-        with self.assertRaises(Exception) as context: 
+        with self.assertRaises(Exception) as context:
             product.deserialize(data)
-        self.assertIn(str(context.exception), "Invalid product: body of request contained bad or no data list indices must be integers or slices, not str")     
-        
+        self.assertIn(
+            str(context.exception),
+            "Invalid product: body of request contained bad or no data list indices must be integers or slices, not str"
+        )
+
     def test_read_a_product(self):
         """It should find the product in the DB"""
         product = ProductFactory()
@@ -186,13 +189,13 @@ class TestProductModel(unittest.TestCase):
         product.id = None
         product.create()
         self.assertIsNotNone(product.id)
-        
+
         # update product
         product.id = None
-        with self.assertRaises(Exception) as context: 
+        with self.assertRaises(Exception) as context:
             product.update()
-        self.assertEqual(str(context.exception), "Update called with empty ID field")    
-        
+        self.assertEqual(str(context.exception), "Update called with empty ID field")
+
     def test_delete_a_product(self):
         """It should Delete a Product"""
         product = ProductFactory()
@@ -255,15 +258,15 @@ class TestProductModel(unittest.TestCase):
         for product in products:
             product.create()
 
-        # get product info  
+        # get product info
         first_product = Product.all()[0]
         count = len([product for product in products if product.price == first_product.price])
         products_by_price = Product.find_by_price(first_product.price)
 
-        # carry out assertions  
+        # carry out assertions
         self.assertEqual(products_by_price.count(), count)
         for product in products_by_price:
-            self.assertEqual(product.price, first_product.price)      
+            self.assertEqual(product.price, first_product.price)
 
     def test_find_by_price_string(self):
         products = ProductFactory.create_batch(5)
@@ -272,16 +275,14 @@ class TestProductModel(unittest.TestCase):
 
         # update product
         first_product = Product.all()[0]
-        first_product.price = "10"
+        first_product.price = '10'
         first_product.update()
 
         # get product by price
         count = len([product for product in products if product.price == first_product.price])
-        products_by_price = Product.find_by_price("10")
+        products_by_price = Product.find_by_price('10')
 
-        # carry out assertions  
+        # carry out assertions
         self.assertEqual(products_by_price.count(), count)
         for product in products_by_price:
             self.assertEqual(product.price, first_product.price)
-
-                
